@@ -64,3 +64,26 @@ double bilinear(imgContainer img, int channel, vec2 coords) {
 
     return interpolated;
 }
+
+imgContainer bilinearInterpolationWindow(imgContainer img, double angle, vec2 centre, int windowWidth) {
+    imgContainer window = {malloc(windowWidth * windowWidth * sizeof(double)), windowWidth, windowWidth, 1};
+    
+    vec2 deltaX = {cos(angle), sin(angle)};
+    vec2 deltaY = {-sin(angle), cos(angle)};
+
+    vec2 topLeft = centre;
+    topLeft.x -= windowWidth;
+    topLeft.y -= windowWidth;
+
+    for(int y = 0; y < windowWidth; y++) {
+        for(int x = 0; x < windowWidth; x++) {
+            vec2 currCoords = topLeft;
+            currCoords.x += deltaX.x * x + deltaY.x * y;
+            currCoords.y += deltaX.y * x + deltaY.y * y;
+
+            window.imageData[y * windowWidth + x] = bilinear(img, 0, currCoords);
+        }
+    }
+
+    return window;
+}

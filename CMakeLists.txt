@@ -5,7 +5,8 @@ add_executable(ais
     src/core/main.c
     src/args/args.c
     src/interpolate/interpolate.c
-    src/align/align.c
+    src/align/noAlign.c
+    src/align/starAlign.c
     src/stack/stack.c
 )
 target_include_directories(ais PRIVATE include)

@@ -3,9 +3,9 @@
 
 #include "img.h"
 
-typedef imgAlignment (*alignFunc)(imgContainer reference, imgContainer image);
+typedef imgAlignment* (*alignFunc)(imgContainer reference, imgContainer* images, int imagesLen);
 
-imgAlignment noAlign(imgContainer reference, imgContainer image);
-imgAlignment forwardAdditive(imgContainer reference, imgContainer image);
+imgAlignment* noAlign(imgContainer reference, imgContainer* images, int imagesLen);
+imgAlignment* circlePatternAlign(imgContainer reference, imgContainer* images, int imagesLen);
 
 #endif
