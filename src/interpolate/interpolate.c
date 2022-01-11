@@ -19,7 +19,7 @@ vec2 untransform(imgAlignment img, int x, int y) {
     double rotSin = sin(img.angle);
     double xt = x - img.dx;
     double yt = y - img.dy;
-    return (vec2){rotCos * xt+ rotSin * yt,
+    return (vec2){rotCos * xt + rotSin * yt,
                     -rotSin * xt + rotCos * yt};
 }
 
@@ -28,7 +28,7 @@ imgContainer alignImage(imgAlignment img, double (*interpolate)(imgContainer img
     int imageDataLen = img.image.width * img.image.height * img.image.channels;
     imgContainer stackedImage = img.image;
     stackedImage.imageData = malloc(imageDataLen * sizeof(double));
-
+    
     // Get interpolated value for each pixel
     for(int y = 0; y < stackedImage.height; y++) {
         for(int x = 0; x < stackedImage.width; x++) {
@@ -44,14 +44,15 @@ imgContainer alignImage(imgAlignment img, double (*interpolate)(imgContainer img
                 }
                 stackedImage.imageData[dataIndex] = interpolatedValue;
             }
-            
         }
     }
+
+    return stackedImage;
 }
 
 double bilinear(imgContainer img, int channel, vec2 coords) {
     int topLeftIndex = img.height * img.width * channel + img.width * (int)coords.y + (int)coords.x;
-    int bottomLeftIndex = topLeftIndex + img.height;
+    int bottomLeftIndex = topLeftIndex + img.width;
 
     // Interpolate along the x-axis
     double xWeight = coords.x - floor(coords.x);

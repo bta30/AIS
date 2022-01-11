@@ -6,6 +6,7 @@
 
 #include "args.h"
 #include "align.h"
+#include "errors.h"
 #include "stack.h"
 
 // String containing output for the help screen
@@ -37,8 +38,6 @@ const char* tooManyArgsError = "Error: Too many arguments given with ";
 const char* invalidArgNameError = "Error: Invalid argument name ";
 // Invalid choice given
 const char* invalidChoiceError = "Error: Invalid choice for ";
-// Memory allocation failed
-const char* memoryAllocationError = "Error: Failed to allocate sufficient memory";
 
 // Default set of arguments for the program
 programArgs defaultArgs = {NULL, 0, 1, NULL, NULL, NULL, NULL, noAlign, meanStack, 0};

@@ -3,10 +3,6 @@
 
 #include "interpolate.h"
 
-typedef struct {
-    double x, y;
-} vec2;
-
 vec2 transform(imgAlignment img, int x, int y);  // Get aligned coords given old coords
 vec2 untransform(imgAlignment img, int x, int y);  // Get old coords given aligned coords
 

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "align.h"
 
 imgAlignment* noAlign(imgContainer reference, imgContainer* images, int imagesLen) {
