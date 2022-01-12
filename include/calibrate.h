@@ -3,6 +3,6 @@
 
 #include "img.h"
 
-imgContainer calibrate(imgContainer image, char* bias, char* dark, char* flat);
+int calibrate(imgContainer* images, int imagesLen, char* bias, char* dark, char* flat);
 
 #endif

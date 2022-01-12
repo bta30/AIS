@@ -12,15 +12,21 @@ imgContainer meanStack(imgContainer* images, int imagesLen) {
 
     // Add all images together
     for(int i = 0; i < imagesLen; i++) {
-        for(int j = 0; j < imageDataLen && !isnan(images[i].imageData[j]); j++) {
-            stackedImage.imageData[j] += images[i].imageData[j];
-            pixelCounts[i]++;
+        for(int j = 0; j < imageDataLen; j++) {
+            if(!isnan(images[i].imageData[j])) {
+                stackedImage.imageData[j] += images[i].imageData[j];
+                pixelCounts[j]++;
+            }
         }
     }
 
     // Divide by number of images
     for(int i = 0; i < imageDataLen; i++) {
-        stackedImage.imageData[i] /= pixelCounts[i];
+        if(pixelCounts[i] == 0) {
+            stackedImage.imageData[i] = 0;
+        } else {
+            stackedImage.imageData[i] /= pixelCounts[i];
+        }
     }
 
     free(pixelCounts);

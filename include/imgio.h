@@ -3,7 +3,8 @@
 
 #include "img.h"
 
-imgContainer loadImage(const char* filepath);
-int exportImage(imgContainer image, const char* filepath);
+imgContainer loadImage(char* filePath);
+imgContainer* loadImages(char** fileNames, int fileNamesLen);
+int exportImage(imgContainer image, const char* filePath);
 
 #endif

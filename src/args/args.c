@@ -4,18 +4,21 @@
 
 int processArgs(int argc, char** argv, programArgs* args) {
     if(checkFirstArgFormat(argc, argv)) {
-        return 0;
+        return 1;
     }
 
     *args = defaultArgs;
     int err;
     if(err = iterateArgs(argc, argv, args)) {
-        return err == 1 ? 0 : err;
+        return err;
     }
 
     if(args->fileNames == NULL) {
         fprintf(stderr, "%s\n", noInputFileError);
+        return 1;
     }
+
+    addDefaultValues(args);
 
     return 0;
 }
@@ -26,6 +29,8 @@ int processCurrArg(int argc, char** argv, programArgs* args, int argIndex) {
         return processIn(argc, argv, args, argIndex);
     } else if(strcmp(argName, "-stdin") == 0) {
         return 2;
+    } else if(strcmp(argName, "-out") == 0) {
+        return processFileNameArg(argc, argv, &(args->outputFileName), argIndex);
     } else if(strcmp(argName, "-bias") == 0) {
         return processFileNameArg(argc, argv, &(args->bias), argIndex);
     } else if(strcmp(argName, "-dark") == 0) {
@@ -37,8 +42,10 @@ int processCurrArg(int argc, char** argv, programArgs* args, int argIndex) {
     } else if(strcmp(argName, "-align") == 0) {
         return processAlign(argc, argv, args, argIndex);
     } else if(strcmp(argName, "-stack") == 0) {
-        return processAlign(argc, argv, args, argIndex);
-    } else if(strcmp(argName, "-help") == 0) {
+        return processStack(argc, argv, args, argIndex);
+    } else if(strcmp(argName, "-interpolate") == 0) {
+        return processInterpolate(argc, argv, args, argIndex);
+    }else if(strcmp(argName, "-help") == 0) {
         printf("%s\n", helpOutput);
         return 1;
     } else {
@@ -130,6 +137,8 @@ int processAlign(int argc, char** argv, programArgs* args, int argIndex) {
 alignFunc chooseAlign(char* alignName) {
     if(strcmp(alignName, "noalign") == 0) {
         return noAlign;
+    } else if(strcmp(alignName, "starthreshold") == 0) {
+        return starThresholdAlign;
     } else {
         return NULL;
     }
@@ -141,7 +150,7 @@ int processStack(int argc, char** argv, programArgs* args, int argIndex) {
         return err;
     }
 
-    if(args-> stack != NULL) {
+    if(args->stack != NULL) {
         fprintf(stderr, "%s%s\n", duplicateError, argv[argIndex]);
         return 1;
     }
@@ -163,10 +172,38 @@ stackFunc chooseStack(char* stackName) {
     }
 }
 
+int processInterpolate(int argc, char** argv, programArgs* args, int argIndex) {
+    int err;
+    if(err = ensureOneArg(argc, argv, argIndex)) {
+        return err;
+    }
+
+    if(args->interpolate != NULL) {
+        fprintf(stderr, "%s%s\n", duplicateError, argv[argIndex]);
+        return 1;
+    }
+
+    args->interpolate = chooseInterpolate(argv[argIndex + 1]);
+    if(args->interpolate == NULL) {
+        fprintf(stderr, "%s%s, %s\n", invalidChoiceError, argv[argIndex], argv[argIndex + 1]);
+        return 1;
+    }
+
+    return 0;
+}
+
+interpolationFunc chooseInterpolate(char* stackName) {
+    if(strcmp(stackName, "bilinear") == 0) {
+        return bilinearInterpolation;
+    } else {
+        return NULL;
+    }
+}
+
 int readFirstFileNameStdin(programArgs* args, int bufferSize) {
     // Check that more than zero input files have been given
     char* firstLine = readLineStdin();
-    if(firstLine[0] == '\n') {
+    if(firstLine[0] == '\0') {
         fprintf(stderr, "%s\n", noInputFileError);
         return 1;
     }
@@ -186,7 +223,7 @@ int readFirstFileNameStdin(programArgs* args, int bufferSize) {
 int readRemainingFileNamesStdin(programArgs* args, int bufferSize) {
     // Read the remaining file names into args
     char* currLine;
-    while((currLine = readLineStdin()) != NULL && currLine[0] != '\n') {
+    while((currLine = readLineStdin()) != NULL && currLine[0] != '\0') {
         // Doubles the file name buffer's size if it becomes full
         if(args->fileNamesLen == bufferSize) {
             bufferSize *= 2;
@@ -229,7 +266,7 @@ char* readLineStdin() {
             break;
         }
 
-        char* lineEndPoint = strchr(inputBuffer + bufferOffset, '\n');
+        lineEndPoint = strchr(inputBuffer + bufferOffset, '\n');
         if(lineEndPoint == NULL) {
             // Increase buffer size if not reached end of line
             bufferOffset = bufferSize - 1;
@@ -244,6 +281,7 @@ char* readLineStdin() {
         }
     }
 
+    inputBuffer[lineLength] = '\0';
     return inputBuffer;
 }
 
@@ -307,4 +345,22 @@ int iterateArgs(int argc, char** argv, programArgs* args) {
     }
 
     return 0;
+}
+
+void addDefaultValues(programArgs* args) {
+    if(args->outputFileName == NULL) {
+        args->outputFileName = defaultOutput;
+    }
+    if(args->alignImage == NULL) {
+        args->alignImage = args->fileNames[0];
+    }
+    if(args->align == NULL) {
+        args->align = defaultAlign;
+    }
+    if(args->stack == NULL) {
+        args->stack = defaultStack;
+    }
+    if(args->interpolate == NULL) {
+        args->interpolate = defaultInterpolate;
+    }
 }
