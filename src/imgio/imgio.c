@@ -14,12 +14,13 @@ imgContainer loadImage(char* filePath) {
         img.channels = 3;
         TIFFGetField(imageFile, TIFFTAG_SAMPLESPERPIXEL, &img.channels);
         img.filePath = filePath;
+        img.toDeleteFilePath = 0;
 
         img.imageData = malloc(img.width * img.height * img.channels * sizeof(double));
         if(img.imageData == NULL) {
             fprintf(stderr, "%s\n", memoryAllocationError);
             TIFFClose(imageFile);
-            return (imgContainer){NULL, 0, 0, 0, NULL};
+            return (imgContainer){NULL, 0, 0, 0, NULL, 0};
         }
 
         uint32_t* raster = _TIFFmalloc(img.width * img.height * sizeof(uint32_t));
@@ -39,19 +40,19 @@ imgContainer loadImage(char* filePath) {
                 _TIFFfree(raster);
                 free(img.imageData);
                 TIFFClose(imageFile);
-                return (imgContainer){NULL, 0, 0, 0, NULL};
+                return (imgContainer){NULL, 0, 0, 0, NULL, 0};
             }
             _TIFFfree(raster);
         } else {
             fprintf(stderr, "%s\n", memoryAllocationError);
             free(img.imageData);
             TIFFClose(imageFile);
-            return (imgContainer){NULL, 0, 0, 0, NULL};
+            return (imgContainer){NULL, 0, 0, 0, NULL, 0};
         }
         TIFFClose(imageFile);
     } else {
         fprintf(stderr, "%s%s\n", unableOpenFileError, filePath);
-        img = (imgContainer){NULL, 0, 0, 0, NULL};
+        img = (imgContainer){NULL, 0, 0, 0, NULL, 0};
     }
 
     return img;
@@ -65,13 +66,9 @@ imgContainer* loadImages(char** fileNames, int fileNamesLen) {
         return NULL;
     }
 
-    // Allocate each image
+    // Set file name for each image
     for(int i = 0; i < fileNamesLen; i++) {
-        images[i] = loadImage(fileNames[i]);
-        if(images[i].imageData == NULL) {
-            free(images);
-            return NULL;
-        }
+        images[i] = (imgContainer){NULL, 0, 0, 0, fileNames[i], 0};
     }
 
     return images;

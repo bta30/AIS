@@ -9,15 +9,15 @@ int calibrate(imgContainer* images, int imagesLen, char* bias, char* dark, char*
         return 0;
     }
 
-    imgContainer denominator = {NULL, 0, 0, 0, NULL};
+    imgContainer denominator = {NULL, 0, 0, 0, NULL, 0};
     if(bias != NULL && flat != NULL) {
-        denominator = getDenominator(images[0].width, images[0].height, images[0].channels, bias, flat);
+        denominator = getDenominator(bias, flat);
         if(denominator.imageData == NULL) {
             return -1;
         }
     }
     
-    imgContainer darkFrame = {NULL, 0, 0, 0, NULL};
+    imgContainer darkFrame = {NULL, 0, 0, 0, NULL, 0};
     if(dark != NULL) {
         imgContainer darkFrame = loadImage(dark);
         if(darkFrame.imageData == NULL) {
@@ -29,29 +29,71 @@ int calibrate(imgContainer* images, int imagesLen, char* bias, char* dark, char*
     return 0;
 }
 
-imgContainer getDenominator(int width, int height, int channels, char* bias, char* flat) {
-    imgContainer flatFrame = (flat != NULL) ? loadImage(flat) :
-        createFilled1Image(width, height, channels);
-    if(flatFrame.imageData == NULL) {
-        return (imgContainer){NULL, 0, 0, 0, NULL};
-    }
-    if(flat != NULL) {
-        normaliseMean(flatFrame);
+calibrationInfo getCalibration(char* bias, char* dark, char* flat) {
+    calibrationInfo calibration = {{NULL, 0, 0, 0, NULL, 0},
+                                    {NULL, 0, 0, 0, NULL, 0},
+                                    0};
+
+    if(bias == NULL && dark == NULL && flat == NULL) {
+        return calibration;
     }
 
-    if(bias != NULL) {
-        imgContainer biasFrame = loadImage(bias);
-        if(biasFrame.imageData == NULL) {
-            return (imgContainer){NULL, 0, 0, 0, NULL};
+    imgContainer denominator = {NULL, 0, 0, 0, NULL, 0};
+    if(bias != NULL && flat != NULL) {
+        denominator = getDenominator(bias, flat);
+        if(denominator.imageData == NULL) {
+            calibration.error = -1;
+            return calibration;
         }
-        subtractImage(flatFrame, biasFrame);
+    }
+    
+    imgContainer darkFrame = {NULL, 0, 0, 0, NULL, 0};
+    if(dark != NULL) {
+        imgContainer darkFrame = loadImage(dark);
+        if(darkFrame.imageData == NULL) {
+            calibration.error = -1;
+            return calibration;
+        }
     }
 
-    return flatFrame;
+    calibration.dark = darkFrame;
+    calibration.denominator = denominator;
+    return calibration;
+}
+
+imgContainer getDenominator(char* bias, char* flat) {
+    // Load bias frame
+    imgContainer biasFrame = {NULL, 0, 0, 0, bias, 0};
+    if(bias != NULL) {
+        biasFrame = loadImage(bias);
+        if(biasFrame.imageData == NULL) {
+            return (imgContainer){NULL, 0, 0, 0, NULL, 0};
+        }
+    }
+
+    // Load flat frame
+    imgContainer flatFrame = {NULL, 0, 0, 0, bias, 0};
+    if(flat != NULL) {
+        flatFrame = loadImage(flat);
+        if(biasFrame.imageData != NULL) {
+            subtractImage(flatFrame, biasFrame);
+        }
+    } else if(biasFrame.imageData != NULL) {
+        flatFrame = createFilled1Image(biasFrame.width, biasFrame.height, biasFrame.channels);
+    }
+
+    // Return normalised calibration frame if it exists
+    if(flatFrame.imageData == NULL) {
+        return (imgContainer){NULL, 0, 0, 0, NULL, 0};
+    } else {
+        normaliseMean(flatFrame);
+        return flatFrame;
+    }
 }
 
 void performCalibration(imgContainer* images, int imagesLen, imgContainer dark, imgContainer denominator) {
     for(int i = 0; i < imagesLen; i++) {
+        initImgContainer(images + i);
         if(dark.imageData != NULL) {
             subtractImage(images[i], dark);
         }
@@ -61,7 +103,20 @@ void performCalibration(imgContainer* images, int imagesLen, imgContainer dark, 
         }
 
         normaliseMax(images[i]);
+        deinitImgContainer(images + i);
     }
+}
+
+void calibrateImage(imgContainer image, calibrationInfo calibration) {
+    if(calibration.dark.imageData != NULL) {
+        subtractImage(image, calibration.dark);
+    }
+
+    if(calibration.denominator.imageData != NULL) {
+        divideImage(image, calibration.denominator);
+    }
+
+    normaliseMax(image);
 }
 
 imgContainer createFilled1Image(int width, int height, int channels) {
@@ -69,7 +124,7 @@ imgContainer createFilled1Image(int width, int height, int channels) {
                             width, height, channels};
     if(img.imageData == NULL) {
         fprintf(stderr, "%s\n", memoryAllocationError);
-        return (imgContainer){NULL, 0, 0, 0, NULL};
+        return (imgContainer){NULL, 0, 0, 0, NULL, 0};
     }
 
     for(int i = 0; i < width * height * channels; i++) {

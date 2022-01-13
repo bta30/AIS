@@ -167,6 +167,8 @@ int processStack(int argc, char** argv, programArgs* args, int argIndex) {
 stackFunc chooseStack(char* stackName) {
     if(strcmp(stackName, "mean") == 0) {
         return meanStack;
+    } else if(strcmp(stackName, "meansigmareject") == 0) {
+        return meanSigmaRejectStack;
     } else {
         return NULL;
     }

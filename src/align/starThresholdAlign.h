@@ -4,11 +4,12 @@
 #include "align.h"
 #include "vec.h"
 
-const int minStarArea = 16;
-const int comparedTris = 64;
+const int minStarArea = 32;
+const int comparedTris = 32;
 const int maxCompareTris = 1000000;
-const int chosenTris = 32;
+const int chosenTris = 16;
 const double maxError = 0.1;
+const int topChooseStars = 5;
 
 typedef struct {
     vec2* coords;

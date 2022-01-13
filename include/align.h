@@ -2,10 +2,12 @@
 #define ALIGN_H
 
 #include "img.h"
+#include "calibrate.h"
+#include "interpolate.h"
 
-typedef imgAlignment* (*alignFunc)(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel);
+typedef imgContainer* (*alignFunc)(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel, calibrationInfo calibration, interpolationFunc interpolate);
 
-imgAlignment* noAlign(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel);
-imgAlignment* starThresholdAlign(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel);
+imgContainer* noAlign(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel, calibrationInfo calibration, interpolationFunc interpolate);
+imgContainer* starThresholdAlign(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel, calibrationInfo calibration, interpolationFunc interpolate);
 
 #endif

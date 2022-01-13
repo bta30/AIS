@@ -6,6 +6,7 @@ typedef struct {
 	double* imageData;
 	int width, height, channels;
     char* filePath;
+    int toDeleteFilePath;
 } imgContainer;
 
 // Stores alignment information of a single image
@@ -16,5 +17,7 @@ typedef struct {
 
 int initImgContainer(imgContainer* img);
 int deinitImgContainer(imgContainer* img);
+
+int deleteImgContainer(imgContainer* img);
 
 #endif

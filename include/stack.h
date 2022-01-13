@@ -6,5 +6,6 @@
 typedef imgContainer (*stackFunc)(imgContainer* images, int imagesLen);
 
 imgContainer meanStack(imgContainer* images, int imagesLen);
+imgContainer meanSigmaRejectStack(imgContainer* images, int imagesLen);
 
 #endif

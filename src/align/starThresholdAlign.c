@@ -5,24 +5,45 @@
 
 #include "starThresholdAlign.h"
 
-imgAlignment* starThresholdAlign(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel) {
-    imgAlignment* outImages = malloc(imagesLen * sizeof(imgAlignment));
+imgContainer* starThresholdAlign(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel, calibrationInfo calibration, interpolationFunc interpolate) {
+    imgContainer* outImages = malloc(imagesLen * sizeof(imgAlignment));
     srand(time(NULL));
     
     printf("Calculating threshold\n");
     double threshold = getStarThreshold(reference);
     printf("Calculated threshold: %f\n", threshold);
-    printf("Calculating reference image triangles");
+    printf("Calculating reference image triangles\n");
     starTriangleList refTris = getTriangles(getStars(reference, threshold));
+
     for(int i = 0; i < imagesLen; i++) {
-        printf("Aligning image #%d\n", i);
+        initImgContainer(images + i);
+        printf("Aligning image %s\n", images[i].filePath);
+
+        printf("Performing calibration\n");
+        calibrateImage(images[i], calibration);
+
         printf("Finding stars\n");
         starsList currStars = getStars(images[i], threshold);
         printf("Found %d stars\n", currStars.len);
+
         printf("Finding alignment\n");
         alignInfo alignment = getAlignment(refTris, currStars);
-        printf("Found alignment: dx=%f, dy=%f, angle=%f\n", alignment.dx, alignment.dy, alignment.angle);
-        outImages[i] = (imgAlignment){images[i], alignment.dx, alignment.dy, alignment.angle};
+        if(alignment.dx == 0.0 && alignment.dy == 0.0 && alignment.angle == 0) {
+            printf("Could not find alignment\n");
+            if(images[i].toDeleteFilePath) {
+                free(images[i].filePath);
+            }
+            outImages[i] = (imgContainer){NULL, 0, 0, 0, NULL, 0};
+        } else {
+            printf("Found alignment: dx=%f, dy=%f, angle=%f\n", alignment.dx, alignment.dy, alignment.angle);
+            printf("Performing interpolation\n");
+            imgAlignment aligned = {images[i], alignment.dx, alignment.dy, alignment.angle};
+            outImages[i] = bilinearInterpolation(aligned);
+            deinitImgContainer(outImages + i);
+        }
+
+        free(images[i].imageData);
+        putchar('\n');
     }
 
     return outImages;
@@ -47,6 +68,7 @@ starsList getStars(imgContainer image, double threshold) {
     // Generate binary thresholded image
     int* thresholdImage = malloc(image.width * image.height * sizeof(int));
     for(int i = 0; i < image.height * image.width; i++) {
+        //printf("i%d\n", i);
         thresholdImage[i] = image.imageData[i] > threshold;
     }
 
@@ -68,8 +90,8 @@ starsList getStars(imgContainer image, double threshold) {
             }
         }
     }
-
     free(pixelQueue);
+
     return stars;
 }
 
@@ -210,7 +232,7 @@ starTriangleMatch* getLowestErrorTriangles(starTriangleMatch* matches, int match
 
     // For each element in the matches list, put it into the lowestTris list if it has a low enough error
     for(int i = length; i < matchesLength; i++) {
-        if(matches[i].error > lowestTris[i].error) {
+        if(matches[i].error < maxError) {
             double newMaxError = matches[i].error;
             for(int j = 0; j < length; j++) {
                 if(lowestTris[j].error = maxError) {

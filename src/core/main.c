@@ -9,6 +9,11 @@
 #include "stack.h"
 
 imgContainer stackNoAlign(imgContainer* images, programArgs args) {
+    printf("Calibrating images\n");
+    if(calibrate(images, args.fileNamesLen, args.bias, args.dark, args.flat)) {
+        return (imgContainer){NULL, 0, 0, 0, NULL, 0};
+    }
+
     printf("Stacking images\n");
     imgContainer stacked = args.stack(images, args.fileNamesLen);
     
@@ -21,29 +26,24 @@ imgContainer stackNoAlign(imgContainer* images, programArgs args) {
 }
 
 imgContainer stackAlign(imgContainer* images, programArgs args) {
+    printf("Getting image calibration\n");
+    calibrationInfo calibration = getCalibration(args.bias, args.dark, args.flat);
+    if(calibration.error) {
+        return (imgContainer){NULL, 0, 0, 0, NULL, 0};
+    }
+
     printf("Aligning images\n");
     imgContainer alignImage = loadImage(args.alignImage);
-    imgAlignment* aligned = args.align(alignImage, images, args.fileNamesLen, args.alignChannel);
+    imgContainer* interpolated = args.align(alignImage, images, args.fileNamesLen, args.alignChannel, calibration, args.interpolate);
     free(images);
 
-    printf("Interpolating images\n");
-    int alignedNum = 0;
-    imgContainer* interpolated = malloc(args.fileNamesLen * sizeof(imgContainer));
+    printf("Stacking images\n");
+    imgContainer stacked = args.stack(interpolated, args.fileNamesLen);
+
     for(int i = 0; i < args.fileNamesLen; i++) {
-        if(aligned[i].dx != 0.0 &&
-            aligned[i].dy != 0.0 &&
-            aligned[i].angle != 0.0) {
-                interpolated[alignedNum++] = args.interpolate(aligned[i]);
+        if(interpolated[i].imageData != NULL) {
+            free(interpolated[i].imageData);
         }
-        free(aligned[i].image.imageData);
-    }
-    free(aligned);
-
-    printf("Stackings images\n");
-    imgContainer stacked = args.stack(interpolated, alignedNum);
-
-    for(int i = 0; i < alignedNum; i++) {
-        free(interpolated[i].imageData);
     }
     free(interpolated);
     return stacked;
@@ -64,12 +64,10 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    printf("Calibrating images\n");
-    if(err = calibrate(images, args.fileNamesLen, args.bias, args.dark, args.flat)) {
-        return err;
-    }
-
     imgContainer stacked = (args.align == noAlign) ? stackNoAlign(images, args) : stackAlign(images, args);
+    if(stacked.imageData == NULL) {
+        return -1;
+    }
 
     printf("Exporting output image: %s\n", args.outputFileName);
     exportImage(stacked, args.outputFileName);

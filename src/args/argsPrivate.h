@@ -22,7 +22,7 @@ const char* helpOutput =
     "-flat [image]\t\tSpecify master flat image\n"
     "-alignImage [image]\t\tAlign aligment image (defaults to first input file given)\n"
     "-align [method]\t\tSpecify alignment method (noalign (default), starthreshold)\n"
-    "-stack [method]\t\tSpecify stacking method (mean (default))\n"
+    "-stack [method]\t\tSpecify stacking method (mean (default), meansigmareject)\n"
     "-interpolate [method]\t\tSpecify interpolation method (bilinear (default))\n"
     "-help\t\tPrint this help screen";
 

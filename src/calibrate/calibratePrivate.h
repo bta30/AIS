@@ -6,7 +6,7 @@
 
 void performCalibration(imgContainer* images, int imagesLen, imgContainer dark, imgContainer denominator);
 
-imgContainer getDenominator(int width, int height, int channels, char* bias, char* flat);
+imgContainer getDenominator(char* bias, char* flat);
 imgContainer createFilled1Image(int width, int height, int channels);
 
 void subtractImage(imgContainer img1, imgContainer img2); 

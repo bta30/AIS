@@ -4,7 +4,8 @@
 #include "interpolatePrivate.h"
 
 imgContainer bilinearInterpolation(imgAlignment img) {
-    return alignImage(img, bilinear);
+    imgContainer outImage = alignImage(img, bilinear);
+    return outImage;
 }
 
 vec2 transform(imgAlignment img, int x, int y) {
@@ -28,19 +29,21 @@ imgContainer alignImage(imgAlignment img, double (*interpolate)(imgContainer img
     int imageDataLen = img.image.width * img.image.height * img.image.channels;
     imgContainer stackedImage = img.image;
     stackedImage.imageData = malloc(imageDataLen * sizeof(double));
+    vec2 topLeft = untransform(img, 0, 0);
+    vec2 diff = subtract(untransform(img, 1, 1), topLeft);
     
     // Get interpolated value for each pixel
     for(int y = 0; y < stackedImage.height; y++) {
         for(int x = 0; x < stackedImage.width; x++) {
             for(int i = 0; i < stackedImage.channels; i++) {
                 int dataIndex = stackedImage.width * stackedImage.height * i + stackedImage.width * y + x;
-                vec2 coords = untransform(img, x, y);
+                vec2 coords = untransform(img, x, y);//{topLeft.x + x * diff.x, topLeft.y + y * diff.y};
                 double interpolatedValue;
                 if(coords.x >= 0 && coords.x <= stackedImage.width - 1 &&
                     coords.y >= 0 && coords.y <= stackedImage.height - 1) {
                     interpolatedValue = interpolate(img.image, i, coords);
                 } else {
-                    interpolatedValue = NAN;
+                    interpolatedValue = 0.0;
                 }
                 stackedImage.imageData[dataIndex] = interpolatedValue;
             }
@@ -64,27 +67,4 @@ double bilinear(imgContainer img, int channel, vec2 coords) {
     double interpolated = interpolateTop + (interpolateBottom - interpolateTop) * yWeight;
 
     return interpolated;
-}
-
-imgContainer bilinearInterpolationWindow(imgContainer img, double angle, vec2 centre, int windowWidth) {
-    imgContainer window = {malloc(windowWidth * windowWidth * sizeof(double)), windowWidth, windowWidth, 1};
-    
-    vec2 deltaX = {cos(angle), sin(angle)};
-    vec2 deltaY = {-sin(angle), cos(angle)};
-
-    vec2 topLeft = centre;
-    topLeft.x -= windowWidth;
-    topLeft.y -= windowWidth;
-
-    for(int y = 0; y < windowWidth; y++) {
-        for(int x = 0; x < windowWidth; x++) {
-            vec2 currCoords = topLeft;
-            currCoords.x += deltaX.x * x + deltaY.x * y;
-            currCoords.y += deltaX.y * x + deltaY.y * y;
-
-            window.imageData[y * windowWidth + x] = bilinear(img, 0, currCoords);
-        }
-    }
-
-    return window;
 }
