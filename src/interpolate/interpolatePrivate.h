@@ -3,11 +3,8 @@
 
 #include "interpolate.h"
 
-vec2 transform(imgAlignment img, int x, int y);  // Get aligned coords given old coords
-vec2 untransform(imgAlignment img, int x, int y);  // Get old coords given aligned coords
+vec2 untransform(alignInfo alignment, int x, int y);  // Get old coords given aligned coords
 
-imgContainer alignImage(imgAlignment img, double (*interpolate)(imgContainer img, int channel, vec2 coords));  // Generate aligned image using given interpolation algorithm
-
-double bilinear(imgContainer img, int channel, vec2 coords);
+imgContainer alignImage(imgContainer image, alignInfo alignment, double (*interpolate)(imgContainer image, int channel, vec2 coords));  // Generate aligned image using given interpolation algorithm
 
 #endif

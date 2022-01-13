@@ -9,9 +9,9 @@ void performCalibration(imgContainer* images, int imagesLen, imgContainer dark, 
 imgContainer getDenominator(char* bias, char* flat);
 imgContainer createFilled1Image(int width, int height, int channels);
 
-void subtractImage(imgContainer img1, imgContainer img2); 
-void divideImage(imgContainer img1, imgContainer img2);
-void normaliseMean(imgContainer img);
-void normaliseMax(imgContainer img);
+void subtractImage(imgContainer image1, imgContainer image2); 
+void divideImage(imgContainer image1, imgContainer image2);
+void normaliseMean(imgContainer image);
+void normaliseMax(imgContainer image);
 
 #endif

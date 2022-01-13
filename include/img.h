@@ -9,15 +9,12 @@ typedef struct {
     int toDeleteFilePath;
 } imgContainer;
 
-// Stores alignment information of a single image
+// Stores alignment information for a single image
 typedef struct {
-    imgContainer image;
     double dx, dy, angle;
-} imgAlignment;
+} alignInfo;
 
-int initImgContainer(imgContainer* img);
-int deinitImgContainer(imgContainer* img);
-
-int deleteImgContainer(imgContainer* img);
+int initImgContainer(imgContainer* image);
+int deinitImgContainer(imgContainer* image);
 
 #endif

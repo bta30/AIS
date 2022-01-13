@@ -3,8 +3,8 @@
 
 #include "img.h"
 #include "align.h"
-#include "stack.h"
 #include "interpolate.h"
+#include "stack.h"
 
 // Stores the arguments given to the program
 typedef struct {

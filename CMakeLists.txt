@@ -13,6 +13,7 @@ add_executable(ais
     src/imgio/imgio.c
     src/calibrate/calibrate.c
     src/img/img.c
+    src/interpolate/bilinear.c
 )
 target_include_directories(ais PRIVATE include)
 target_link_libraries(ais PRIVATE m tiff)

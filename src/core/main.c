@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "align.h"
 #include "args.h"
 #include "calibrate.h"
 #include "imgio.h"
-#include "align.h"
 #include "interpolate.h"
 #include "stack.h"
 

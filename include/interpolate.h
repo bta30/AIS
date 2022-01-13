@@ -4,8 +4,8 @@
 #include "img.h"
 #include "vec.h"
 
-typedef imgContainer (*interpolationFunc)(imgAlignment img);
+typedef imgContainer (*interpolationFunc)(imgContainer image, alignInfo alignment);
 
-imgContainer bilinearInterpolation(imgAlignment img);
+imgContainer bilinearInterpolation(imgContainer image, alignInfo alignment);
 
 #endif

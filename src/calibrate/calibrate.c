@@ -120,56 +120,56 @@ void calibrateImage(imgContainer image, calibrationInfo calibration) {
 }
 
 imgContainer createFilled1Image(int width, int height, int channels) {
-    imgContainer img = {malloc(width * height * channels * sizeof(double)),
+    imgContainer image = {malloc(width * height * channels * sizeof(double)),
                             width, height, channels};
-    if(img.imageData == NULL) {
+    if(image.imageData == NULL) {
         fprintf(stderr, "%s\n", memoryAllocationError);
         return (imgContainer){NULL, 0, 0, 0, NULL, 0};
     }
 
     for(int i = 0; i < width * height * channels; i++) {
-        img.imageData[i] = 1.0;
+        image.imageData[i] = 1.0;
     }
 
-    return img;
+    return image;
 }
 
-void subtractImage(imgContainer img1, imgContainer img2) {
-    for(int i = 0; i < img1.width * img1.height * img1.channels; i++) {
-        img1.imageData[i] -= img2.imageData[i];
-    }
-}
-
-void divideImage(imgContainer img1, imgContainer img2) {
-    for(int i = 0; i < img1.width * img1.height * img1.channels; i++) {
-        img1.imageData[i] /= img2.imageData[i];
+void subtractImage(imgContainer image1, imgContainer image2) {
+    for(int i = 0; i < image1.width * image1.height * image1.channels; i++) {
+        image1.imageData[i] -= image2.imageData[i];
     }
 }
 
-void normaliseMean(imgContainer img) {
-    for(int c = 0; c < img.channels; c++) {
+void divideImage(imgContainer image1, imgContainer image2) {
+    for(int i = 0; i < image1.width * image1.height * image1.channels; i++) {
+        image1.imageData[i] /= image2.imageData[i];
+    }
+}
+
+void normaliseMean(imgContainer image) {
+    for(int c = 0; c < image.channels; c++) {
         double pixelSum = 0.0;
-        for(int i = 0; i < img.width * img.height;  i++) {
-            pixelSum += img.imageData[c * img.width * img.height + i];
+        for(int i = 0; i < image.width * image.height;  i++) {
+            pixelSum += image.imageData[c * image.width * image.height + i];
         }
-        double pixelAvg = pixelSum / (img.width * img.height);
-        for(int i = 0; i < img.width * img.height;  i++) {
-            img.imageData[c * img.width * img.height + i] /= pixelAvg;
+        double pixelAvg = pixelSum / (image.width * image.height);
+        for(int i = 0; i < image.width * image.height;  i++) {
+            image.imageData[c * image.width * image.height + i] /= pixelAvg;
         }
     }
 }
 
-void normaliseMax(imgContainer img) {
-    for(int c = 0; c < img.channels; c++) {
+void normaliseMax(imgContainer image) {
+    for(int c = 0; c < image.channels; c++) {
         double pixelMax = 0.0;
-        for(int i = 0; i < img.width * img.height;  i++) {
-            double value = img.imageData[c * img.width * img.height + i];
+        for(int i = 0; i < image.width * image.height;  i++) {
+            double value = image.imageData[c * image.width * image.height + i];
             if(pixelMax < value) {
                 pixelMax = value;
             }
         }
-        for(int i = 0; i < img.width * img.height;  i++) {
-            img.imageData[c * img.width * img.height + i] /= pixelMax;
+        for(int i = 0; i < image.width * image.height;  i++) {
+            image.imageData[c * image.width * image.height + i] /= pixelMax;
         }
     }
 }

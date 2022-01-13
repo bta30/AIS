@@ -1,8 +1,8 @@
 #ifndef IMGIO_PRIVATE_H
 #define IMGIO_PRIVATE_H
 
-#include "imgio.h"
 #include "errors.h"
+#include "imgio.h"
 
 // Error strings
 // Unable to open input file

@@ -5,57 +5,57 @@
 #include "imgPrivate.h"
 #include "imgio.h"
 
-int initImgContainer(imgContainer* img) {
-    if(img->imageData == NULL && img->filePath == NULL) {
+int initImgContainer(imgContainer* image) {
+    if(image->imageData == NULL && image->filePath == NULL) {
         fprintf(stderr, "%s\n", initNullError);
         return -1;
-    } else if(img->imageData == NULL) {
-        imgContainer newImage = loadImage(img->filePath);
-        newImage.toDeleteFilePath = img->toDeleteFilePath;
+    } else if(image->imageData == NULL) {
+        imgContainer newImage = loadImage(image->filePath);
+        newImage.toDeleteFilePath = image->toDeleteFilePath;
         if(newImage.imageData == NULL) {
             return -1;
         }
-        *img = newImage;
+        *image = newImage;
     }
 }
 
-int deinitImgContainer(imgContainer* img) {
-    if(img->imageData == NULL) {
-        fprintf(stderr, "%s%s\n", deinitNullImageError, img->filePath);
+int deinitImgContainer(imgContainer* image) {
+    if(image->imageData == NULL) {
+        fprintf(stderr, "%s%s\n", deinitNullImageError, image->filePath);
         return -1;
     }
 
-    if(img->filePath == NULL) {
+    if(image->filePath == NULL) {
         fprintf(stderr, "%s\n", deinitNullFilePathError);
     }
 
-    ensureTempDir(img);
-    if(exportImage(*img, img->filePath)) {
+    ensureTempDir(image);
+    if(exportImage(*image, image->filePath)) {
         return -1;
     }
 
-    free(img->imageData);
-    img->imageData = NULL;
+    free(image->imageData);
+    image->imageData = NULL;
 
     return 0;
 }
 
-void ensureTempDir(imgContainer* img) {
+void ensureTempDir(imgContainer* image) {
     // Check if the path is in tempDir
     int tempDirLength = strlen(tempDir);
-    if(strncmp(img->filePath, tempDir, tempDirLength) != 0) {
+    if(strncmp(image->filePath, tempDir, tempDirLength) != 0) {
         // Get the name of the file
-        char* lastSlash = strrchr(img->filePath, '/');
-        char* fileName = (lastSlash == NULL) ? img->filePath : lastSlash + 1;
+        char* lastSlash = strrchr(image->filePath, '/');
+        char* fileName = (lastSlash == NULL) ? image->filePath : lastSlash + 1;
 
         int newLen = strlen(fileName) + tempDirLength + 1;
         char* newFilePath = malloc(newLen * sizeof(char));
         strcpy(newFilePath, tempDir);
         strcat(newFilePath, fileName);
 
-        if(img->toDeleteFilePath) {
-            free(img->filePath);
+        if(image->toDeleteFilePath) {
+            free(image->filePath);
         }
-        img->filePath = newFilePath;
+        image->filePath = newFilePath;
     }
 }

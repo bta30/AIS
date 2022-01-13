@@ -7,8 +7,8 @@
 #include "args.h"
 #include "align.h"
 #include "errors.h"
-#include "stack.h"
 #include "interpolate.h"
+#include "stack.h"
 
 // String containing output for the help screen
 const char* helpOutput =

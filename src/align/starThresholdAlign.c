@@ -1,12 +1,12 @@
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <math.h>
 
 #include "starThresholdAlign.h"
 
 imgContainer* starThresholdAlign(imgContainer reference, imgContainer* images, int imagesLen, int alignChannel, calibrationInfo calibration, interpolationFunc interpolate) {
-    imgContainer* outImages = malloc(imagesLen * sizeof(imgAlignment));
+    imgContainer* outImages = malloc(imagesLen * sizeof(imgContainer));
     srand(time(NULL));
     
     printf("Calculating threshold\n");
@@ -37,8 +37,7 @@ imgContainer* starThresholdAlign(imgContainer reference, imgContainer* images, i
         } else {
             printf("Found alignment: dx=%f, dy=%f, angle=%f\n", alignment.dx, alignment.dy, alignment.angle);
             printf("Performing interpolation\n");
-            imgAlignment aligned = {images[i], alignment.dx, alignment.dy, alignment.angle};
-            outImages[i] = bilinearInterpolation(aligned);
+            outImages[i] = bilinearInterpolation(images[i], alignment);
             deinitImgContainer(outImages + i);
         }
 
@@ -103,8 +102,7 @@ int getStar(int* image, int x, int y, int width, int height, vec2* centre, int* 
     int queueHead = 0, queueTail = 2;
 
     // Go through each pixel in the star, summing all x and y coords
-    int sumX = x, sumY = y;
-    int pixelCount = 1;
+    int sumX = x, sumY = y, pixelCount = 1;
     while(queueHead != queueTail) {
         // Add the current coordinates to the running sum
         sumX += pixelQueue[queueHead];
@@ -185,17 +183,17 @@ alignInfo getAlignment(starTriangleList refTris, starsList imgStars) {
     return getMeanAlignment(alignments, chosenTris);
 }
 
-starTriangleMatch* getMatchingTriangles(starTriangleList refTris, starsList imgStars, int length) {
+starTriangleMatch* getMatchingTriangles(starTriangleList refTris, starsList imageStars, int length) {
     starTriangleMatch* matches = malloc(length * sizeof(starTriangleMatch));
 
     int i = 0;
     int totalCompared = 0;
     while(i < length && totalCompared < maxCompareTris) {
-        starTriangle imgTri = getRandomTriangle(imgStars);
-        starTriangle closestTri = getClosestTriangle(imgTri, refTris);
-        double error = triangleError(imgTri, closestTri);
+        starTriangle imageTri = getRandomTriangle(imageStars);
+        starTriangle closestTri = getClosestTriangle(imageTri, refTris);
+        double error = triangleError(imageTri, closestTri);
         
-        // Make sure imgTri not in matches
+        // Make sure imageTri not in matches
         int inMatches = 0;
         for(int j = 0; j < i; j++) {
             if(matches[i].error == error) {
@@ -205,7 +203,7 @@ starTriangleMatch* getMatchingTriangles(starTriangleList refTris, starsList imgS
         }       
 
         if(error < maxError && !inMatches) {
-            matches[i++] = (starTriangleMatch) {closestTri, imgTri, error};
+            matches[i++] = (starTriangleMatch) {closestTri, imageTri, error};
         }
 
         totalCompared++;
@@ -252,11 +250,11 @@ starTriangleMatch* getLowestErrorTriangles(starTriangleMatch* matches, int match
 alignInfo getMatchAlignment(starTriangleMatch match) {
     // Puts the vertices of the triangles into the correct order
     match.refTri = rotateStartSmallestLength(match.refTri);
-    match.imgTri = rotateStartSmallestLength(match.imgTri);
+    match.imageTri = rotateStartSmallestLength(match.imageTri);
 
     vec2 refSide = subtract(match.refTri.coords[1], match.refTri.coords[0]);
-    vec2 imgSide = subtract(match.imgTri.coords[1], match.imgTri.coords[0]);
-    double angle = getSideRotation(imgSide, refSide, match.refTri.lengths[0]);
+    vec2 imageSide = subtract(match.imageTri.coords[1], match.imageTri.coords[0]);
+    double angle = getSideRotation(imageSide, refSide, match.refTri.lengths[0]);
     
     vec2 translation = getTranslation(match, angle);
 
@@ -266,7 +264,7 @@ alignInfo getMatchAlignment(starTriangleMatch match) {
 vec2 getTranslation(starTriangleMatch match, double angle) {
     vec2 sumTranslation = {0.0, 0.0};
     for(int i = 0; i < 3; i++) {
-        vec2 translation = subtract(match.refTri.coords[i], rotate(match.imgTri.coords[i], angle));
+        vec2 translation = subtract(match.refTri.coords[i], rotate(match.imageTri.coords[i], angle));
         sumTranslation.x += translation.x;
         sumTranslation.y += translation.y;
     }

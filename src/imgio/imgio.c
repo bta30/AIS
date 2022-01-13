@@ -5,57 +5,57 @@
 
 imgContainer loadImage(char* filePath) {
     TIFF* imageFile = TIFFOpen(filePath, "r");
-    imgContainer img;
+    imgContainer image;
 
     if(imageFile) {
         // Retrieve metadata info from image
-        TIFFGetField(imageFile, TIFFTAG_IMAGEWIDTH, &img.width);
-        TIFFGetField(imageFile, TIFFTAG_IMAGELENGTH, &img.height);
-        img.channels = 3;
-        TIFFGetField(imageFile, TIFFTAG_SAMPLESPERPIXEL, &img.channels);
-        img.filePath = filePath;
-        img.toDeleteFilePath = 0;
+        TIFFGetField(imageFile, TIFFTAG_IMAGEWIDTH, &image.width);
+        TIFFGetField(imageFile, TIFFTAG_IMAGELENGTH, &image.height);
+        image.channels = 3;
+        TIFFGetField(imageFile, TIFFTAG_SAMPLESPERPIXEL, &image.channels);
+        image.filePath = filePath;
+        image.toDeleteFilePath = 0;
 
-        img.imageData = malloc(img.width * img.height * img.channels * sizeof(double));
-        if(img.imageData == NULL) {
+        image.imageData = malloc(image.width * image.height * image.channels * sizeof(double));
+        if(image.imageData == NULL) {
             fprintf(stderr, "%s\n", memoryAllocationError);
             TIFFClose(imageFile);
             return (imgContainer){NULL, 0, 0, 0, NULL, 0};
         }
 
-        uint32_t* raster = _TIFFmalloc(img.width * img.height * sizeof(uint32_t));
+        uint32_t* raster = _TIFFmalloc(image.width * image.height * sizeof(uint32_t));
         if(raster != NULL) {
-            if(TIFFReadRGBAImage(imageFile, img.width, img.height, raster, 0)) {
-                for(int y = 0; y < img.height; y++) {
-                    for(int x = 0; x < img.width; x++) {
-                        int tiffIndex = (img.height - y - 1) * img.width + x;
-                        int imageDataIndex = y * img.width + x;
-                        img.imageData[imageDataIndex] = (double)TIFFGetR(raster[tiffIndex])/(1<<8);
-                        img.imageData[img.width * img.height + imageDataIndex] = (double)TIFFGetG(raster[tiffIndex])/(1<<8);
-                        img.imageData[2 * img.width * img.height + imageDataIndex] = (double)TIFFGetB(raster[tiffIndex])/(1<<8);
+            if(TIFFReadRGBAImage(imageFile, image.width, image.height, raster, 0)) {
+                for(int y = 0; y < image.height; y++) {
+                    for(int x = 0; x < image.width; x++) {
+                        int tiffIndex = (image.height - y - 1) * image.width + x;
+                        int imageDataIndex = y * image.width + x;
+                        image.imageData[imageDataIndex] = (double)TIFFGetR(raster[tiffIndex])/(1<<8);
+                        image.imageData[image.width * image.height + imageDataIndex] = (double)TIFFGetG(raster[tiffIndex])/(1<<8);
+                        image.imageData[2 * image.width * image.height + imageDataIndex] = (double)TIFFGetB(raster[tiffIndex])/(1<<8);
                     }
                 }
             } else {
                 fprintf(stderr, "%s%s\n", unableReadFileError, filePath);
                 _TIFFfree(raster);
-                free(img.imageData);
+                free(image.imageData);
                 TIFFClose(imageFile);
                 return (imgContainer){NULL, 0, 0, 0, NULL, 0};
             }
             _TIFFfree(raster);
         } else {
             fprintf(stderr, "%s\n", memoryAllocationError);
-            free(img.imageData);
+            free(image.imageData);
             TIFFClose(imageFile);
             return (imgContainer){NULL, 0, 0, 0, NULL, 0};
         }
         TIFFClose(imageFile);
     } else {
         fprintf(stderr, "%s%s\n", unableOpenFileError, filePath);
-        img = (imgContainer){NULL, 0, 0, 0, NULL, 0};
+        image = (imgContainer){NULL, 0, 0, 0, NULL, 0};
     }
 
-    return img;
+    return image;
 }
 
 imgContainer* loadImages(char** fileNames, int fileNamesLen) {

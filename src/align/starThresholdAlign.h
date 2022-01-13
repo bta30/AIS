@@ -29,13 +29,9 @@ typedef struct {
 
 typedef struct {
     starTriangle refTri;
-    starTriangle imgTri;
+    starTriangle imageTri;
     double error;
 } starTriangleMatch;
-
-typedef struct {
-    double dx, dy, angle;
-} alignInfo;
 
 double getStarThreshold(imgContainer image);  // Determine threshold for star brightness
 starsList getStars(imgContainer image, double threshold);  // Generate list of stars present in an image
@@ -43,8 +39,8 @@ starTriangleList getTriangles(starsList stars);  // Get list of star triangles g
 
 int getStar(int* image, int x, int y, int width, int height, vec2* centre, int* pixelQueue); // Get the centre of the star starting at a particular coordinate given, erasing it, returns 0 if the star given is invalid
 
-alignInfo getAlignment(starTriangleList refTris, starsList imgStar);  // Gets alignment between a starTriangleList and a starsList
-starTriangleMatch* getMatchingTriangles(starTriangleList refTris, starsList imgStars, int length);  // Gets length matching pairs triangles of stars between a starsList and a starTriangleList
+alignInfo getAlignment(starTriangleList refTris, starsList imageStar);  // Gets alignment between a starTriangleList and a starsList
+starTriangleMatch* getMatchingTriangles(starTriangleList refTris, starsList imageStars, int length);  // Gets length matching pairs triangles of stars between a starsList and a starTriangleList
 starTriangleMatch* getLowestErrorTriangles(starTriangleMatch* matches, int matchesLength, int length);  // Gets a list of the matches with the length smallest errors
 alignInfo getMatchAlignment(starTriangleMatch match);  // Gets the alignment from a match of triangles
 alignInfo getMeanAlignment(alignInfo* alignments, int length);  // Gets the mean alignment given a list of alignments

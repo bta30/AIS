@@ -9,6 +9,6 @@ const char* deinitNullFilePathError = "Error: Attempted to deinitialise an imgCo
 
 const char* tempDir = "temp/";
 
-void ensureTempDir(imgContainer* img);  // If the path of img is not in tempDir, replace it with a new path in tempDir
+void ensureTempDir(imgContainer* image);  // If the path of image is not in tempDir, replace it with a new path in tempDir
 
 #endif
